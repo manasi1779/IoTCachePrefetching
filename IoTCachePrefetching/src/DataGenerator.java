@@ -8,7 +8,11 @@ import java.net.Socket;
 import java.util.Random;
 import java.util.Scanner;
 
-
+/**
+ * IoT class
+ * @author Manasi
+ *
+ */
 public class DataGenerator extends Thread{
 	
 	String context;
@@ -55,6 +59,10 @@ public class DataGenerator extends Thread{
 		iot.init();
 	}
 	
+	/**
+	 * Initializes IoT device by registering to router
+	 * Starts thread for generating data continuously and serving requests
+	 */
 	private void init() {
 		register();
 		try{
@@ -81,6 +89,9 @@ public class DataGenerator extends Thread{
 		startTime = System.currentTimeMillis();		
 	}
 
+	/**
+	 * Registers to Router specified by user
+	 */
 	public void register(){
 		try (Socket root = new Socket(rootHostName, 12345)){
 			System.out.println("Registering to "+rootHostName+" CEP Engine");
@@ -119,19 +130,20 @@ public class DataGenerator extends Thread{
 		}		
 	}
 	
+	/**
+	 * Serves requests coming from different IoTs or Router
+	 * @param socket
+	 */
 	public void serveRequest(Socket socket){
 		try{
-	//	System.out.println(socket.getInetAddress().getHostName()+".cs.rit.edu connected");
 		BufferedReader din = new BufferedReader (
 				new InputStreamReader (socket.getInputStream()));
-	//	System.out.println("Waiting for command");
 		String command;
 		while((command = din.readLine()) == null);
 		PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
 		switch(command){
 			case Messages.checkValue:{
 				pw.println(checkValue());
-		//		System.out.println("Sending value "+value);
 				socket.close();
 				break;
 			}
@@ -203,7 +215,6 @@ public class DataGenerator extends Thread{
 				break;
 			}
 			case Messages.useToken:{
-			//	System.out.println("Waiting for changes");
 				String rollingchanges;
 				pw.println(Messages.getChanges);
 				while((rollingchanges = din.readLine()) == null);
@@ -275,7 +286,6 @@ public class DataGenerator extends Thread{
 				createRandomValue();
 			}
 			else{
-				//System.out.println("Serve request thread");
 				try(Socket socket = serverSocket.accept()){			
 					serveRequest(socket);	
 				} catch (IOException e) {
@@ -285,12 +295,14 @@ public class DataGenerator extends Thread{
 		}
 	}
 	
-		
+	/**
+	 * This method is invoked if this IoT is root node	
+	 * @param socket
+	 */
 	public void addIoT(Socket socket) {
 		try{
 			System.out.println("Adding "+socket.getInetAddress().getHostName()+".cs.rit.edu"+" to the system");
 			PrintWriter bw = new PrintWriter(socket.getOutputStream(), true);
-			//bw.println("changePredecessor");
 			if(leafNode == null){
 				bw.println(InetAddress.getLocalHost().getHostName()+".cs.rit.edu");
 				successorHostName = socket.getInetAddress().getHostName()+".cs.rit.edu";
@@ -345,7 +357,7 @@ public class DataGenerator extends Thread{
 	}
 
 	
-	/*
+	/**
 	 * Deals with new positions replacement
 	 */
 	public void insert(Socket successor){
@@ -365,7 +377,6 @@ public class DataGenerator extends Thread{
 			}
 			PrintWriter successorpw = new PrintWriter(successor.getOutputStream(), true);			
 			// update successor of insert as old successor
-			//successorpw.println("changeSuccessor");
 			if(oldSuccessor == null){				
 				successorpw.println("null");
 			}
@@ -381,6 +392,9 @@ public class DataGenerator extends Thread{
 		return cachedValue;
 	}
 	
+	/**
+	 * Generates random data
+	 */
 	public void createRandomValue(){
 		long now = System.currentTimeMillis();
 		if(now - startTime > temporalCoherencyRequirement){
@@ -424,6 +438,11 @@ public class DataGenerator extends Thread{
 		}
 	}	
 	
+	/**
+	 * While adjusting position in context path checks if all predecessor have value greater than own value
+	 * If a previous IoT has lesser value, gets its predecessor 
+	 * @return
+	 */
 	public String checkPredesessor(){
 		int predecessorValue;
 		Socket predecessorSocket = null;
@@ -471,6 +490,11 @@ public class DataGenerator extends Thread{
 			return pred;
 	}
 	
+	/**
+	 * Checks if all successor have value greater than own value
+	 * If a successor has greater value gets its info 
+	 * @return
+	 */
 	public String checkSuccessor(){
 		int successorValue;
 		String succHostName = successorHostName;
@@ -480,7 +504,6 @@ public class DataGenerator extends Thread{
 		}
 		try {
 			while(true){
-			//	System.out.println("reaching for successor "+succHostName);
 				successorSocket = new Socket(succHostName, 12345);
 				PrintWriter newpw = new PrintWriter(successorSocket.getOutputStream(), true);
 				newpw.println(Messages.checkValue);
@@ -531,13 +554,16 @@ public class DataGenerator extends Thread{
 		return succHostName;
 	}
 	
+	/**
+	 * Checks value with predecessor and successor for finding correct position for inserting
+	 */
 	public void adjustPosition(){		
 		cachedValue = value;
 		try {
 		String changeWith = checkPredesessor();
 		PrintWriter bw;
 			if(changeWith == null){
-				//No need to change
+				//No need to change with any preceding IoT
 				noOfChanges = 0;
 				changeWith = checkSuccessor();
 				if(changeWith == null){
@@ -624,6 +650,10 @@ public class DataGenerator extends Thread{
 		}		
 	}
 
+	/**
+	 * Sends sorted data by collecting data from successor
+	 * @return
+	 */
 	public String sendData(){
 		String data  = "";		
 		try {			
@@ -645,32 +675,6 @@ public class DataGenerator extends Thread{
 		}
 		System.out.println("Sending data "+data+" "+ID+" "+cachedValue);
 		return ID+":"+cachedValue+" "+data;
-	}
-	
-	public void writeToSocket(String hostName, String command){
-		try {
-			Socket socket = new Socket(hostName, 12345);
-			PrintWriter bw = new PrintWriter(socket.getOutputStream(), true);
-			bw.println(command);
-			socket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
-	}
-	
-	public String readFromSocket(String hostName){
-		Socket socket;
-		String data = null;
-		try {
-			socket = new Socket(hostName, 12345);
-			BufferedReader din = new BufferedReader(new InputStreamReader (socket.getInputStream()));
-			while((data = din.readLine()) == null);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		 
-		return data;
 	}
 	
 }

@@ -1,4 +1,9 @@
 
+/**
+ * Class to refer all kind of messages
+ * @author Manasi
+ *
+ */
 public final class Messages {
 	
 	public static final String addIoT = "addIoT";

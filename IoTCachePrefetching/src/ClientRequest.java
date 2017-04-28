@@ -7,6 +7,11 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * Thread to serve operations at client
+ * @author Manasi
+ *
+ */
 public class ClientRequest extends Thread{
 	
 	static String serverAddress;
@@ -104,7 +109,6 @@ public class ClientRequest extends Thread{
 					}
 					case Messages.getData:{
 						PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-					//	System.out.println("Waiting for context");
 						String context;
 						while((context = reader.readLine()) == null);
 						pw.println(cache.get(context));
