@@ -1,8 +1,11 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Scanner;
 
 public class CEPEngine extends Thread{
 	
@@ -26,10 +29,29 @@ public class CEPEngine extends Thread{
 	}
 	
 	public void run(){
+		Scanner s = new Scanner(System.in);
+		System.out.println("Enter router name to connect to:");
+		String router2 = s.nextLine();
+		try {
+			if(!router2.equals("null")){
+				Socket router = new Socket(router2, 12345);
+				PrintWriter pw = new PrintWriter(router.getOutputStream(), true); 
+				pw.println(Messages.addRouter);
+				Thread processorInstance = new ComplexEventProcessor(Messages.addRouter, router);
+				processorInstance.start();
+				router.close();
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		while(true){
 			try{
 				Socket clnt = aServerSocket.accept();
-			//	System.out.println(clnt.getInetAddress().getHostName()+".cs.rit.edu " + "connected");
+		//		System.out.println(clnt.getInetAddress().getHostName()+".cs.rit.edu " + "connected");
 				BufferedReader din = new BufferedReader (
 						new InputStreamReader (clnt.getInputStream()));
 		//		System.out.println("Waiting for operation");
@@ -40,7 +62,7 @@ public class CEPEngine extends Thread{
 				Thread processorInstance = new ComplexEventProcessor(operation, clnt);
 				processorInstance.start();
 				//din.close();
-				long now = System.currentTimeMillis();
+		//		long now = System.currentTimeMillis();
 				/*if(now - timer > 5000 && !ComplexEventProcessor.checkingUpdate){
 					timer = now;
 					ComplexEventProcessor.checkingUpdate = true;
