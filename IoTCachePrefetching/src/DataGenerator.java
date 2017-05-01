@@ -218,7 +218,7 @@ public class DataGenerator extends Thread{
 			/*
 			 * Change to remember old successor before changing position. 
 			 * If position was changed with any of the successors 
-			 * then token should be passed to old successor instead of newly updated successor. 
+			 * then token should be passed to new successor. 
 			 * If position was changed with any of the predecessors
 			 * then also token should be passed to old successor instead of newly updated successor.
 			 */
