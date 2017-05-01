@@ -49,10 +49,10 @@ public class ComplexEventProcessor extends Thread{
  	
  	//TODO 
  	/**
- 	 * Passing leaf node to the new context root.
- 	 * Currently data is pulled from root node when request comes, 
- 	 * this might return unsorted data based on position of token in the overlay.
- 	 * To solve this there is need to get data at the end of rolled token as sorted data and cache it to respective client
+ 	 * 1. Passing leaf node to the new context root so that IoTs need not be registered at initialization of application only.
+ 	 * 2. Currently data is pulled from root node which makes recursive requests to successors for locally saved sorted data when request comes. 
+ 	 * However, this might return unsorted data based on position of token in the overlay.
+ 	 * To solve this there is need to wait for token to be returned and completing data request before forwarding token again.
  	 * 
  	 */
  	

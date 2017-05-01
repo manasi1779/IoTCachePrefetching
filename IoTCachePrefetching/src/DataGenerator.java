@@ -214,6 +214,14 @@ public class DataGenerator extends Thread{
 				}
 				break;
 			}
+			//TODO
+			/*
+			 * Change to remember old successor before changing position. 
+			 * If position was changed with any of the successors 
+			 * then token should be passed to old successor instead of newly updated successor. 
+			 * If position was changed with any of the predecessors
+			 * then also token should be passed to old successor instead of newly updated successor.
+			 */
 			case Messages.useToken:{
 				String rollingchanges;
 				pw.println(Messages.getChanges);
